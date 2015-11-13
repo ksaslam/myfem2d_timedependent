@@ -15,10 +15,10 @@ ndims = 2
 opt = 0
 
 ## Select C++ compiler
-CXX = g++-mp-4.7
+CXX = g++
 
 ## Boost location and library name
-BOOST_ROOT_DIR = /Users/eunseo/opt/boost_1_51_0
+BOOST_ROOT_DIR = /opt/boost_1_59_0
 
 ########################################################################
 ## Select compiler and linker flags
@@ -83,6 +83,7 @@ SRCS =	\
 	matprops.cxx \
 	mesh.cxx \
 	output.cxx \
+	solver.cxx \
 	rheology.cxx
 
 INCS =	\
@@ -93,6 +94,7 @@ INCS =	\
 	matprops.hpp \
 	utils.hpp \
 	mesh.hpp \
+	solver.hpp \
 	output.hpp
 
 OBJS = $(SRCS:.cxx=.$(ndims)d.o)

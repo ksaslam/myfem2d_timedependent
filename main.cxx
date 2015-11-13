@@ -11,6 +11,7 @@
 #include "mesh.hpp"
 #include "output.hpp"
 #include "rheology.hpp"
+#include "solver.hpp"
 
 #ifdef WIN32
 #ifdef _MSC_VER
