@@ -9,7 +9,14 @@ double jacobi_solve(double **matrix_first, double *vector_guess,double* vector_s
 {
   
  int indx,k;
+ double *guess_old;
+ guess_old = (double *)malloc(nelem_in_array*sizeof(double));
  
+ for (indx = 0; indx < nelem_in_array; indx++)
+ {
+    guess_old[indx] = vector_guess[indx];
+ }   
+
  for (indx = 0; indx < nelem_in_array; indx++)
  {
     double product_sum= 0.;
@@ -17,7 +24,7 @@ double jacobi_solve(double **matrix_first, double *vector_guess,double* vector_s
     {
         if(k!=indx)
         {    
-            product_sum = product_sum + matrix_first[indx][k]*vector_guess[k];   // Implementing the equation of jacobi method
+            product_sum = product_sum + matrix_first[indx][k]*guess_old[k];   // Implementing the equation of jacobi method
         }    
     }
     vector_guess[indx] =  1./ matrix_first[indx][indx] * ( vector_second[indx]- product_sum); 
