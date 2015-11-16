@@ -2,7 +2,9 @@
 #include <cstdlib>
 #include "solver.hpp"
 
-double jordan_solve(double **matrix_first, double *vector_guess,double* vector_second, int nelem_in_array) 
+
+// This is the function which solves the Jacobi method 
+double jacobi_solve(double **matrix_first, double *vector_guess,double* vector_second, int nelem_in_array) 
 //void multiply_matrix(double **matrix_first, double *matrix_second, int nelem_in_array) 
 {
   
@@ -15,7 +17,7 @@ double jordan_solve(double **matrix_first, double *vector_guess,double* vector_s
     {
         if(k!=indx)
         {    
-            product_sum = product_sum + matrix_first[indx][k]*vector_guess[k];
+            product_sum = product_sum + matrix_first[indx][k]*vector_guess[k];   // Implementing the equation of jacobi method
         }    
     }
     vector_guess[indx] =  1./ matrix_first[indx][indx] * ( vector_second[indx]- product_sum); 
@@ -24,15 +26,26 @@ double jordan_solve(double **matrix_first, double *vector_guess,double* vector_s
 return *vector_guess; 
 } 
 
+// This is the function which solves the Gauss- Seidal  method 
 
-double gauss_solve(double **matrix_first, double *vector_guess,double* vector_second, int nelem_in_array) 
+double gauss_seidal_solve(double **matrix_first, double *vector_guess,double* vector_second, int nelem_in_array) 
 //void multiply_matrix(double **matrix_first, double *matrix_second, int nelem_in_array) 
 {
   
  int indx,k;
- 
+ //double *vector_x_jacobi;
+ //vector_x_jacobi = (double *)malloc(nelem_in_array*sizeof(double));
+ //for (indx = 0; indx < nelem_in_array; indx++)
+ //{
+ //   vector_x_jacobi[indx]= vector_guess[indx];
+ //}
+
+ //jacobi_solve(matrix_first, vector_x_jacobi,vector_second, nelem_in_array);
+
  for (indx = 0; indx < nelem_in_array; indx++)
  {
+    
+
     double product_sum= 0.;
     double product_sum2=0.;
     for (k = 0; k < nelem_in_array; k++) 
@@ -40,7 +53,7 @@ double gauss_solve(double **matrix_first, double *vector_guess,double* vector_se
         if(k<=indx-1)
         {    
             product_sum = product_sum + matrix_first[indx][k]*vector_guess[k];
-        }    
+        }   //product_sum = product_sum + matrix_first[indx][k]*vector_x_jacobi[k]; 
         if(k>=indx+1)
         {    
             product_sum2 = product_sum2 + matrix_first[indx][k]*vector_guess[k];
@@ -48,9 +61,11 @@ double gauss_solve(double **matrix_first, double *vector_guess,double* vector_se
     }
     vector_guess[indx] =  1./ matrix_first[indx][indx] * ( vector_second[indx]- product_sum- product_sum2); 
  }
-
+  
 return *vector_guess; 
 } 
+
+// // This is the function which solves the Conjugate Gradient  method 
 
 
 double cg_solve(double **matrix_first, double *vector_guess,double* vector_second, int nelem_in_array) 
@@ -85,8 +100,10 @@ double cg_solve(double **matrix_first, double *vector_guess,double* vector_secon
  free(vector_p);
  free(vector_cof);
  free(vector_bk);
-
+return *vector_guess;
 }
+
+// // This is the function which multiplies a vector with a vector transpose and gives scalar back 
 
 double multiply_vector_transpose(double *vector_first, double *vector_second, int nelem_in_array) 
 //void multiply_matrix(double **matrix_first, double *matrix_second, int nelem_in_array) 
@@ -105,6 +122,7 @@ return result_vector;
 }
 
 
+// // This is the function which multiplies a matrix with a vector and gives back a vector  
 
 double multiply_matrix(double **matrix_first, double *vector_first, double *vector_second, int nelem_in_array) 
 //void multiply_matrix(double **matrix_first, double *matrix_second, int nelem_in_array) 

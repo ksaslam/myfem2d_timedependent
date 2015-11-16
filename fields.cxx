@@ -1,12 +1,15 @@
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
+#include <ctime>
 #include "constants.hpp"
 #include "parameters.hpp"
 #include "matprops.hpp"
 #include "utils.hpp"
 #include "solver.hpp"
 #include "fields.hpp"
+#define HEIGHT 5
+#define WIDTH 5
 
 
 void allocate_variables(const Param &param, Variables& var)
@@ -30,21 +33,19 @@ void update_temperature(const Param &param, const Variables &var,
 {
 
 
- const int WIDTH=5;
- const int HEIGHT=5;
  int n,m,i, iter, maxiter;
  maxiter=100;
  double sum;
  double **matrix_first,*vector, *vector_second, *vector_guess;
 
-vector = (double *)malloc(HEIGHT*sizeof(double));
- vector_second = (double *)malloc(HEIGHT*sizeof(double));
- vector_guess = (double *)malloc(HEIGHT*sizeof(double));	
+vector = (double *)malloc(HEIGHT*sizeof(double));    // this is the x-vector
+ vector_second = (double *)malloc(HEIGHT*sizeof(double)); // this is the b-vector
+ vector_guess = (double *)malloc(HEIGHT*sizeof(double));	// this is a guess vector that will converge to solution
 	
- matrix_first=(double **) malloc(HEIGHT*sizeof(double *));
+ matrix_first=(double **) malloc(HEIGHT*sizeof(double *));  // this is matrix A where Ax = b
 
  for(i=0;i<10;i++)
-    matrix_first[i]=(double *) malloc(WIDTH*sizeof(double));
+    matrix_first[i]=(double *) malloc(WIDTH*sizeof(double));  // poplationg matrix A with tridiagnol elements -2,1,1
   
  for (n=0; n<HEIGHT; n++)
   {	
@@ -67,16 +68,17 @@ vector = (double *)malloc(HEIGHT*sizeof(double));
   //printf("\nThe vector is\n");
   for (n=0; n<HEIGHT; n++)
   {	
+    srand(time(NULL));                                 // Populating vector x with random values using random generator
   	vector[n]= ((double)rand() / (double)(RAND_MAX));
   	vector_second[n]= 0. ;
   	//printf("\nThe vector is\n");
   	//printf("%f\t",vector[n]);
   }	
- multiply_matrix (matrix_first, vector, vector_second,WIDTH);
+ multiply_matrix (matrix_first, vector, vector_second,WIDTH);   // multipying matrix A and vector x to get vector b.
  
  for (n=0; n<HEIGHT; n++)
   {	
-  	vector_guess[n]= vector_second[n] ;
+  	vector_guess[n]= vector_second[n] ;                      // giving b vector as a initial guess to test. 
   	
   }	
 
@@ -106,7 +108,8 @@ vector = (double *)malloc(HEIGHT*sizeof(double));
 
   for (iter=0; iter< maxiter; iter++)
  {	
- 	jordan_solve(matrix_first, vector_guess,vector_second, WIDTH); 
+ 	
+  jacobi_solve(matrix_first, vector_guess,vector_second, WIDTH);  // caling jacobi method to solve for x giving an initial guess.
  }
  
  output << "\nThe vector converged after solver is \n";
@@ -114,6 +117,12 @@ vector = (double *)malloc(HEIGHT*sizeof(double));
  {
  	 output << vector_guess[n] << " " ;
  }	 
+ 
+ free(matrix_first);
+ free(vector);
+ free(vector_second);
+ free(vector_guess);
+
 
 }
 
