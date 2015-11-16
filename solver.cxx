@@ -103,6 +103,7 @@ double cg_solve(double **matrix_first, double *vector_guess,double* vector_secon
     multiply_matrix(matrix_first, vector_p, vector_bk,nelem_in_array ) ;
     b_k_coeffic = multiply_vector_transpose(vector_p,vector_r,nelem_in_array) / multiply_vector_transpose(vector_p,vector_bk, nelem_in_array) ;
  } 
+ 
  free(vector_r);
  free(vector_p);
  free(vector_cof);

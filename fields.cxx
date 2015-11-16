@@ -44,7 +44,7 @@ vector = (double *)malloc(HEIGHT*sizeof(double));    // this is the x-vector
 	
  matrix_first=(double **) malloc(HEIGHT*sizeof(double *));  // this is matrix A where Ax = b
 
- for(i=0;i<10;i++)
+ for(i=0;i<HEIGHT;i++)
     matrix_first[i]=(double *) malloc(WIDTH*sizeof(double));  // poplationg matrix A with tridiagnol elements -2,1,1
   
  for (n=0; n<HEIGHT; n++)
@@ -117,11 +117,13 @@ vector = (double *)malloc(HEIGHT*sizeof(double));    // this is the x-vector
  {
  	 output << vector_guess[n] << " " ;
  }	 
- 
+ for(i=0;i<HEIGHT;i++)
+    free(matrix_first[i]);
  free(matrix_first);
  free(vector);
  free(vector_second);
  free(vector_guess);
+
 
 
 }
