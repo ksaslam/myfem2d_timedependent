@@ -1,6 +1,9 @@
 #include <iostream>
 #include <cstdlib>
+#include <cmath>
+#include <omp.h>
 #include "solver.hpp"
+
 
 
 // This is the function which solves the Jacobi method 
@@ -9,8 +12,12 @@ double jacobi_solve(double **matrix_first, double *vector_guess,double* vector_s
 {
   
  int indx,k;
- double *guess_old;
+ double *guess_old, *temp_b, *residual_vector;
+ double sum_squares, root_sum_squares;
  guess_old = (double *)malloc(nelem_in_array*sizeof(double));
+ temp_b = (double *)malloc(nelem_in_array*sizeof(double));
+ residual_vector = (double *)malloc(nelem_in_array*sizeof(double));
+
  
  for (indx = 0; indx < nelem_in_array; indx++)
  {
@@ -29,6 +36,22 @@ double jacobi_solve(double **matrix_first, double *vector_guess,double* vector_s
     }
     vector_guess[indx] =  1./ matrix_first[indx][indx] * ( vector_second[indx]- product_sum); 
  }
+ // finding the reidual
+ multiply_matrix(matrix_first, vector_guess, temp_b , nelem_in_array ) ;
+ for( indx = 0; indx < nelem_in_array; indx++)
+ {
+    residual_vector[indx] = vector_second[indx] - vector_guess[indx];
+ }
+ sum_squares=0.0;
+ root_sum_squares=0.0;
+ for( indx = 0; indx < nelem_in_array; indx++)
+ {
+    sum_squares= sum_squares +  residual_vector[indx]* residual_vector[indx];
+ }
+ root_sum_squares= sqrt(sum_squares);
+ free(guess_old);
+ free(residual_vector);
+ free(temp_b);
 
 return *vector_guess; 
 } 
@@ -94,15 +117,15 @@ double cg_solve(double **matrix_first, double *vector_guess,double* vector_secon
  
  multiply_matrix(matrix_first, vector_r, vector_cof,nelem_in_array ) ;
  alpha_p = multiply_vector_transpose(vector_r,vector_r,nelem_in_array) / multiply_vector_transpose(vector_r,vector_cof, nelem_in_array) ;
-
- for (k = 0; k < nelem_in_array; k++)
- {
-    vector_guess[k] = vector_guess[k] + alpha_p * vector_p[k];
-    multiply_matrix(matrix_first, vector_p, vector_cof,nelem_in_array );
-    vector_r[k] = vector_r[k] - alpha_p * vector_cof[k]   ;
-    multiply_matrix(matrix_first, vector_p, vector_bk,nelem_in_array ) ;
-    b_k_coeffic = multiply_vector_transpose(vector_p,vector_r,nelem_in_array) / multiply_vector_transpose(vector_p,vector_bk, nelem_in_array) ;
- } 
+ #pragma omp parallel for 
+    for (k = 0; k < nelem_in_array; k++)
+    {
+        vector_guess[k] = vector_guess[k] + alpha_p * vector_p[k];
+        multiply_matrix(matrix_first, vector_p, vector_cof,nelem_in_array );
+        vector_r[k] = vector_r[k] - alpha_p * vector_cof[k]   ;
+        multiply_matrix(matrix_first, vector_p, vector_bk,nelem_in_array ) ;
+        b_k_coeffic = multiply_vector_transpose(vector_p,vector_r,nelem_in_array) / multiply_vector_transpose(vector_p,vector_bk, nelem_in_array) ;
+    } 
  
  free(vector_r);
  free(vector_p);

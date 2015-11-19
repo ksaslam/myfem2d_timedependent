@@ -8,8 +8,8 @@
 #include "utils.hpp"
 #include "solver.hpp"
 #include "fields.hpp"
-#define HEIGHT 5
-#define WIDTH 5
+#define HEIGHT 200
+#define WIDTH 200
 
 
 void allocate_variables(const Param &param, Variables& var)
@@ -24,6 +24,7 @@ void allocate_variables(const Param &param, Variables& var)
     var.shpdz = new shapefn(e);
 
     var.mat = new MatProps(param, var);
+
 }
 
 
@@ -34,13 +35,19 @@ void update_temperature(const Param &param, const Variables &var,
 
 
  int n,m,i, iter, maxiter;
- maxiter=100;
+ //const int *conn; 
+ maxiter=1500;
  double sum;
+ 
+ int number_of_nodes=3;
+
  double **matrix_first,*vector, *vector_second, *vector_guess;
 
-vector = (double *)malloc(HEIGHT*sizeof(double));    // this is the x-vector
+
+ vector = (double *)malloc(HEIGHT*sizeof(double));    // this is the x-vector
  vector_second = (double *)malloc(HEIGHT*sizeof(double)); // this is the b-vector
  vector_guess = (double *)malloc(HEIGHT*sizeof(double));	// this is a guess vector that will converge to solution
+ 
 	
  matrix_first=(double **) malloc(HEIGHT*sizeof(double *));  // this is matrix A where Ax = b
 
@@ -109,10 +116,11 @@ vector = (double *)malloc(HEIGHT*sizeof(double));    // this is the x-vector
   for (iter=0; iter< maxiter; iter++)
  {	
  	
-  jacobi_solve(matrix_first, vector_guess,vector_second, WIDTH);  // caling jacobi method to solve for x giving an initial guess.
+  cg_solve(matrix_first, vector_guess,vector_second, WIDTH);  // caling jacobi method to solve for x giving an initial guess.
  }
  
  output << "\nThe vector converged after solver is \n";
+
  for (n=0;n<HEIGHT;n++)
  {
  	 output << vector_guess[n] << " " ;
@@ -123,9 +131,13 @@ vector = (double *)malloc(HEIGHT*sizeof(double));    // this is the x-vector
  free(vector);
  free(vector_second);
  free(vector_guess);
+ 
+ const int *conn= (*var.connectivity)[1];
 
-
-
+  
+ output << "\n the number of elements are \n";
+ //output << conn[1] << " " ;
+ 
 }
 
 
