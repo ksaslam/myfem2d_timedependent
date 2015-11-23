@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <fstream>
 #include "constants.hpp"
 #include "parameters.hpp"
 #include "binaryio.hpp"
@@ -40,9 +40,12 @@ void init(const Param& param, Variables& var)
     allocate_variables(param, var);
 
     compute_volume(*var.coord, *var.connectivity, *var.volume);
-
+    //double iv = 1 / (2 * var.volume[0]);
+    //std::cout << iv << "\n";
+     
     // initialize shape functions here
-    // compute_shape_fn(...)
+    //compute_shape_fn(*var.coord, *var.connectivity, *var.volume, *var.shpdx,*var.shpdy, var);
+    compute_shape_fn(*var.coord, *var.connectivity, *var.volume, *var.shpdx,*var.shpdz, *var.shp ,var);
 
     // apply_bcs(param, var, *var.vel);
 

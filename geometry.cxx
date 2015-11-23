@@ -123,7 +123,91 @@ double compute_dt(const Param& param, const Variables& var)
 
 
 void compute_shape_fn(const array_t &coord, const conn_t &connectivity,
-                      const double_vec &volume, shapefn &shpdx, shapefn &shpdy)
+                      const double_vec &volume, 
+                      shapefn &shpdx, shapefn &shpdz, shapefn &shp, const Variables& var)
 {
-    // To be completed.
-}
+   int e ;
+   int node0,node1,node2;
+   //const double *coordinates_node0, *coordinates_node1, *coordinates_node2; // To be completed.
+   const double beri_centre_x = 1/3;
+   const double beri_cente_y = 1/3;
+   const double weight= 0.5;
+   
+
+   for (e=0; e< var.nelem; e++)
+   { 
+      shp[e][0]= weight * volume[e]* (1.- beri_centre_x- beri_cente_y ) ;  // this is my phi 1 function
+      shp[e][1]= weight* volume[e]* (beri_centre_x);       // phi 2 function
+      shp[e][2]= weight* volume[e]* (beri_cente_y);      // phi 3 function
+
+      shpdx[e][0] = -1.;
+      shpdz[e][0] = -1.;
+      shpdx[e][1] = 1.;
+      shpdz[e][1] = 0.;
+      shpdx[e][2] = 0.;
+      shpdz[e][2] = 1.;
+   }
+
+} 
+  void compute_global_matrix( double **matrix_global, double *global_forc_vector,shapefn &shpdx, shapefn &shpdz, const double_vec &volume, const conn_t &connectivity, shapefn &shp, const Variables& var )
+
+  {
+    int e,i,j;
+    double k, b, *forc_vector;
+    const int number_of_nodes=3;
+    const double weight= 0.5;
+    //double **matrix_first;
+    forc_vector = (double *)malloc(var.nnode*sizeof(double));
+
+
+ 
+    for(i=0;i<var.nnode;i++) // initializing the global k matrix
+    {  
+       forc_vector[i]= 0.;   
+       for(j=0;j<var.nnode;j++)
+       {
+         matrix_global[i][j]= 0.; 
+       }
+
+    }
+    k=0.;   // initializing k 
+      
+    for(e=0;e<var.nelem;i++)
+    { 
+      for(i=0;i<number_of_nodes;i++)
+      {
+
+      }
+    
+    }
+
+    for(e=0;e<var.nelem;i++)
+    {
+        for(i=0;i<number_of_nodes;i++)
+        {
+            b =weight* (shp[e][i] ) * forc_vector[connectivity[e][i]] ; 
+            
+            for(j=0;j<number_of_nodes;j++)
+             {
+               k = weight * volume[e]* ( shpdx[e][i] * shpdx[e][j] + shpdz[e][i] * shpdz[e][j] );
+
+               matrix_global[connectivity[e][i]][connectivity[e][j]] += k; 
+             }
+
+            global_forc_vector[connectivity[e][i]]+= b;
+        }
+        
+    }
+   
+
+             
+
+          
+
+
+  free(forc_vector);
+  } //std::cout << "These ARE  THE coordinates value, test...\n";
+
+   ///std::cout <<  b[1] ;
+
+

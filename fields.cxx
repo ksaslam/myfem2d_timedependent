@@ -8,8 +8,8 @@
 #include "utils.hpp"
 #include "solver.hpp"
 #include "fields.hpp"
-#define HEIGHT 200
-#define WIDTH 200
+#define HEIGHT 10
+#define WIDTH 10
 
 
 void allocate_variables(const Param &param, Variables& var)
@@ -19,10 +19,18 @@ void allocate_variables(const Param &param, Variables& var)
 
     var.volume = new double_vec(e);
     var.temperature = new double_vec(n);
-
     var.shpdx = new shapefn(e);
     var.shpdz = new shapefn(e);
+    var.shp = new shapefn(e);
+    //var.shp2dz = new shapefn(e);
+    //var.shp3dx = new shapefn(e);
+    //var.shp3dz = new shapefn(e);
 
+    //var.shpdx = new shapefn(e);
+    //var.shpdz = new shapefn(e);
+    //var.shpdx = new shapefn(e);
+    //var.shpz = new shapefn(e);
+    //var.shpx = new shapefn(e);
     var.mat = new MatProps(param, var);
 
 }
@@ -36,18 +44,27 @@ void update_temperature(const Param &param, const Variables &var,
 
  int n,m,i, iter, maxiter;
  //const int *conn; 
- maxiter=1500;
+ maxiter=10;
  double sum;
  
  int number_of_nodes=3;
 
- double **matrix_first,*vector, *vector_second, *vector_guess;
-
+ double **matrix_first, **matrix_global, *vector, *vector_second, *vector_guess, *globforc_vector;
+ 
 
  vector = (double *)malloc(HEIGHT*sizeof(double));    // this is the x-vector
  vector_second = (double *)malloc(HEIGHT*sizeof(double)); // this is the b-vector
  vector_guess = (double *)malloc(HEIGHT*sizeof(double));	// this is a guess vector that will converge to solution
  
+// ******************************************* test case ********************
+ globforc_vector = (double *)malloc(var.nnode*sizeof(double));
+ //global_force_vector= (double *)malloc(var.nnode*sizeof(double));
+ matrix_global=(double **) malloc(var.nnode*sizeof(double *));  // this is matrix A where Ax = b
+  for(i=0;i<var.nnode;i++)
+  {
+      matrix_global[i]=(double *) malloc(var.nnode*sizeof(double));  // initializing K matrix 
+  }  
+// **************************************************************************  
 	
  matrix_first=(double **) malloc(HEIGHT*sizeof(double *));  // this is matrix A where Ax = b
 
@@ -75,7 +92,7 @@ void update_temperature(const Param &param, const Variables &var,
   //printf("\nThe vector is\n");
   for (n=0; n<HEIGHT; n++)
   {	
-    srand(time(NULL));                                 // Populating vector x with random values using random generator
+    //srand(time(NULL));                                 // Populating vector x with random values using random generator
   	vector[n]= ((double)rand() / (double)(RAND_MAX));
   	vector_second[n]= 0. ;
   	//printf("\nThe vector is\n");
@@ -131,8 +148,10 @@ void update_temperature(const Param &param, const Variables &var,
  free(vector);
  free(vector_second);
  free(vector_guess);
+ free(matrix_global);
+ free(globforc_vector);
  
- const int *conn= (*var.connectivity)[1];
+ //const int *conn= (*var.connectivity)[1];
 
   
  output << "\n the number of elements are \n";

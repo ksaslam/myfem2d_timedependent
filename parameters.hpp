@@ -246,8 +246,8 @@ struct Variables {
 
     array_t *vel, *force;
     tensor_t *strain_rate, *strain, *stress;
-    shapefn *shpdx, *shpdy, *shpdz;
-
+    shapefn *shpdx, *shpdz, *shp;
+    //shapefn *shp1dx, *shp1dz, *shp2dx, *shp2dz, *shp3dx, *shp3dz;  
     MatProps *mat;
 
     std::vector<MarkerSet*> markersets;
