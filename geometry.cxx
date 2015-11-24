@@ -136,9 +136,9 @@ void compute_shape_fn(const array_t &coord, const conn_t &connectivity,
 
    for (e=0; e< var.nelem; e++)
    { 
-      shp[e][0]= weight * volume[e]* (1.- beri_centre_x- beri_cente_y ) ;  // this is my phi 1 function
-      shp[e][1]= weight* volume[e]* (beri_centre_x);       // phi 2 function
-      shp[e][2]= weight* volume[e]* (beri_cente_y);      // phi 3 function
+      shp[e][0]= weight * volume[e]* (1.- beri_centre_x- beri_cente_y ) ;  // this is my integral of phi 1 function
+      shp[e][1]= weight* volume[e]* (beri_centre_x);       // this is my intergral of phi 2 function
+      shp[e][2]= weight* volume[e]* (beri_cente_y);      // this is my integral of phi 3 function
 
       shpdx[e][0] = -1.;
       shpdz[e][0] = -1.;
@@ -149,55 +149,85 @@ void compute_shape_fn(const array_t &coord, const conn_t &connectivity,
    }
 
 } 
-  void compute_global_matrix( double **matrix_global, double *global_forc_vector,shapefn &shpdx, shapefn &shpdz, const double_vec &volume, const conn_t &connectivity, shapefn &shp, const Variables& var )
+  void compute_global_matrix( const array_t &coord, double **matrix_global, double *global_forc_vector,shapefn &shpdx, shapefn &shpdz, const double_vec &volume, const conn_t &connectivity, shapefn &shp, const Variables& var )
 
   {
-    int e,i,j;
-    double k, b, *forc_vector;
+    int e,i,j,node, force_node1, force_node2;
+    double k, b; 
+    double *forc_vector ;
+    const double *coordinate;
     const int number_of_nodes=3;
     const double weight= 0.5;
-    //double **matrix_first;
+    const double conductivity= 1.e-5;
+
+
+
     forc_vector = (double *)malloc(var.nnode*sizeof(double));
+ // taking care of any source term present in the domain. If there is then consider it as a point source // 
 
-
- 
-    for(i=0;i<var.nnode;i++) // initializing the global k matrix
-    {  
-       forc_vector[i]= 0.;   
-       for(j=0;j<var.nnode;j++)
-       {
-         matrix_global[i][j]= 0.; 
-       }
-
-    }
-    k=0.;   // initializing k 
-      
     for(e=0;e<var.nelem;i++)
     { 
       for(i=0;i<number_of_nodes;i++)
       {
+           node = connectivity[e][i];
+           coordinate= coord[node];
+           if (coordinate[0]>= 0. && coordinate[1]<= -100)
+           {
+             force_node1 =node;
+             goto stop;       // add a break statement here to end the loop
 
+          }  
+          // if (coordinate[0]== 100. && coordinate[1]== 0)
+           //{
+            // force_node2 =node;       // add a break statement here to end the loop
+
+           //}  
       }
+    }  
+      stop:
+    std::cout << "The iteration stopped at \n";
+    std::cout << force_node1;   
+    std::cout << "\n";
     
-    }
+    forc_vector[force_node1]= 10. ;    // this is the source term 
+    //forc_vector[force_node2]= 10. ;    // this is the source term  
 
-    for(e=0;e<var.nelem;i++)
-    {
+
+    k=0.;   // initializing k 
+    std::cout << " K is calculated\n";
+    std::cout <<  k;
+    std::cout << "\n";    
+    std::cout << " no. of element is calculated\n";
+    std::cout <<  var.nelem;
+    std::cout << "\n";
+    std::cout <<number_of_nodes;
+    std::cout << "\n";
+    std::cout <<  var.nnode;
+    std::cout << "\n";
+    
+    
+    std::cout << "Global K matrix calculation.\n";
+   for(e=0;e<var.nelem;e++)
+    { 
+
+        //std::cout << "test ee loop";
+        //std::cout << var.nelem;
         for(i=0;i<number_of_nodes;i++)
-        {
+        {   //std::cout << "test loop";
+            //std::cout << i;  
             b =weight* (shp[e][i] ) * forc_vector[connectivity[e][i]] ; 
             
             for(j=0;j<number_of_nodes;j++)
-             {
-               k = weight * volume[e]* ( shpdx[e][i] * shpdx[e][j] + shpdz[e][i] * shpdz[e][j] );
+            {
+               k = conductivity *weight * volume[e]* ( shpdx[e][i] * shpdx[e][j] + shpdz[e][i] * shpdz[e][j] );
 
                matrix_global[connectivity[e][i]][connectivity[e][j]] += k; 
-             }
+            }
 
-            global_forc_vector[connectivity[e][i]]+= b;
+           // global_forc_vector[connectivity[e][i]]+= b;
         }
         
-    }
+    }  
    
 
              
@@ -205,8 +235,8 @@ void compute_shape_fn(const array_t &coord, const conn_t &connectivity,
           
 
 
-  free(forc_vector);
-  } //std::cout << "These ARE  THE coordinates value, test...\n";
+   free(forc_vector);
+} //std::cout << "These ARE  THE coordinates value, test...\n";
 
    ///std::cout <<  b[1] ;
 

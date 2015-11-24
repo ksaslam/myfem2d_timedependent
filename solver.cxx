@@ -117,7 +117,7 @@ double cg_solve(double **matrix_first, double *vector_guess,double* vector_secon
  
  multiply_matrix(matrix_first, vector_r, vector_cof,nelem_in_array ) ;
  alpha_p = multiply_vector_transpose(vector_r,vector_r,nelem_in_array) / multiply_vector_transpose(vector_r,vector_cof, nelem_in_array) ;
- #pragma omp parallel for 
+// #pragma omp parallel for 
     for (k = 0; k < nelem_in_array; k++)
     {
         vector_guess[k] = vector_guess[k] + alpha_p * vector_p[k];

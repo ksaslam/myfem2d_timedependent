@@ -47,10 +47,52 @@ void init(const Param& param, Variables& var)
     //compute_shape_fn(*var.coord, *var.connectivity, *var.volume, *var.shpdx,*var.shpdy, var);
     compute_shape_fn(*var.coord, *var.connectivity, *var.volume, *var.shpdx,*var.shpdz, *var.shp ,var);
 
+    // ******************************************* test case ********************
+    
+    double **matrix_global, *global_forc_vector;
+    global_forc_vector = (double *)malloc(var.nnode*sizeof(double));
+    matrix_global=(double **) malloc(var.nnode*sizeof(double *));  // this is matrix A where Ax = b
+    for(int i=0;i<var.nnode;i++)
+    {
+      matrix_global[i]=(double *) malloc(var.nnode*sizeof(double));  // initializing K matrix 
+    }  
+    std::ofstream output("./globalmatriks.txt");
+    initialize_global_matrix (matrix_global, var.nnode);
+    initialize_global_force_vector(global_forc_vector, var.nnode);
+
+    for(int i=0;i<var.nnode;i++) // initializing the global k matrix
+    {       
+       for(int j=0;j<var.nnode;j++)
+       {
+         output << matrix_global[i][j] << " " ;
+        }
+    }
+
+    output << " The force vector is calculated"<< " " ;
+    std::cout <<  var.nnode;  
+    for(int j=0;j<var.nnode;j++)
+       {
+         output << global_forc_vector[j] << " " ;
+        }   
+      
+// **************************************************************************  
+    
+    compute_global_matrix( *var.coord, matrix_global, global_forc_vector, *var.shpdx, *var.shpdz, *var.volume, *var.connectivity,*var.shp, var );
+
+    for(int i=0;i<var.nnode;i++) // initializing the global k matrix
+    {       
+       for(int j=0;j<var.nnode;j++)
+       {
+         std::cout << matrix_global[i][j] << " " ;
+        }
+    }     
     // apply_bcs(param, var, *var.vel);
 
     // temperature should be init'd before stress and strain
     initial_temperature(param, var, *var.temperature);
+   // free_global_matrix(matrix_global,var.nnode); 
+    free(matrix_global);
+    free(global_forc_vector);
 }
 
 

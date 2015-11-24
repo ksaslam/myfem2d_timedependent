@@ -22,6 +22,9 @@ void allocate_variables(const Param &param, Variables& var)
     var.shpdx = new shapefn(e);
     var.shpdz = new shapefn(e);
     var.shp = new shapefn(e);
+    //var.matrix_global= new shapefn(n);
+    //var.global_forc_vector = new double_vec(n);
+
     //var.shp2dz = new shapefn(e);
     //var.shp3dx = new shapefn(e);
     //var.shp3dz = new shapefn(e);
@@ -49,7 +52,7 @@ void update_temperature(const Param &param, const Variables &var,
  
  int number_of_nodes=3;
 
- double **matrix_first, **matrix_global, *vector, *vector_second, *vector_guess, *globforc_vector;
+ double **matrix_first, *vector, *vector_second, *vector_guess;
  
 
  vector = (double *)malloc(HEIGHT*sizeof(double));    // this is the x-vector
@@ -57,13 +60,13 @@ void update_temperature(const Param &param, const Variables &var,
  vector_guess = (double *)malloc(HEIGHT*sizeof(double));	// this is a guess vector that will converge to solution
  
 // ******************************************* test case ********************
- globforc_vector = (double *)malloc(var.nnode*sizeof(double));
+ //globforc_vector = (double *)malloc(var.nnode*sizeof(double));
  //global_force_vector= (double *)malloc(var.nnode*sizeof(double));
- matrix_global=(double **) malloc(var.nnode*sizeof(double *));  // this is matrix A where Ax = b
-  for(i=0;i<var.nnode;i++)
-  {
-      matrix_global[i]=(double *) malloc(var.nnode*sizeof(double));  // initializing K matrix 
-  }  
+ //matrix_global=(double **) malloc(var.nnode*sizeof(double *));  // this is matrix A where Ax = b
+  //for(i=0;i<var.nnode;i++)
+  //{
+    //  matrix_global[i]=(double *) malloc(var.nnode*sizeof(double));  // initializing K matrix 
+  //}  
 // **************************************************************************  
 	
  matrix_first=(double **) malloc(HEIGHT*sizeof(double *));  // this is matrix A where Ax = b
@@ -148,8 +151,7 @@ void update_temperature(const Param &param, const Variables &var,
  free(vector);
  free(vector_second);
  free(vector_guess);
- free(matrix_global);
- free(globforc_vector);
+ 
  
  //const int *conn= (*var.connectivity)[1];
 
@@ -159,10 +161,56 @@ void update_temperature(const Param &param, const Variables &var,
  
 }
 
+void initialize_global_matrix (double ** matrix_global, int num_nodes)
+{
+  int i,j;
+  
+
+  // matrix_global =(double **) malloc(num_nodes*sizeof(double *));  // this is matrix A where Ax = b
 
 
+  // for(int i=0;i<num_nodes;i++)
+  //   {
+
+  //     matrix_global[i]=(double *) malloc(num_nodes*sizeof(double));  // initializing K matrix 
+
+  //   }  
+
+  for(i=0;i<num_nodes;i++) // initializing the global k matrix
+    {       
+       for(j=0;j<num_nodes;j++)
+       {
+         matrix_global[i][j]= 0.; 
+       }
+
+    }
+
+}
+
+void initialize_global_force_vector(double * global_forc_vector, int num_nodes)
+{
+  int j;      
+  for(j=0;j<num_nodes;j++)
+    {
+        global_forc_vector[j]= 0.; 
+    }
+
+  
+}
 
 
+void free_global_matrix (double ** matrix_global, int num_nodes)
+
+{
+  int i;
+  
+  for(i=0;i<num_nodes;i++)
+    {
+      free(matrix_global[i]);
+    }  
+
+  free(matrix_global);
+}
  
 
 

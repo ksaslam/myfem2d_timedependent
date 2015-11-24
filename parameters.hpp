@@ -243,6 +243,8 @@ struct Variables {
     double_vec *temperature, *plstrain, *delta_plstrain;
     double_vec *stressyy, *z0;
     double_vec *ntmp;
+    //shapefn *matrix_global;
+    //double_vec *global_forc_vector;
 
     array_t *vel, *force;
     tensor_t *strain_rate, *strain, *stress;

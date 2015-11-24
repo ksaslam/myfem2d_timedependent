@@ -11,6 +11,7 @@ void compute_shape_fn(const array_t &coord, const conn_t &connectivity,
                       const double_vec &volume,
                       shapefn &shpdx, shapefn &shpdz, shapefn &shp, const Variables& var);
 
-void compute_global_matrix( double **matrix_global,double *global_forc_vector,shapefn &shpdx, shapefn &shpdz, const double_vec &volume, const conn_t &connectivity, shapefn &shp, const Variables& var );
+void compute_global_matrix(const array_t &coord, double **matrix_global,double* global_forc_vector,shapefn &shpdx, shapefn &shpdz, const double_vec &volume, const conn_t &connectivity, shapefn &shp, const Variables& var );
+//void compute_global_matrix( const array_t &coord, double** matrix_global, double* global_forc_vector,shapefn &shpdx, shapefn &shpdz, const double_vec &volume, const conn_t &connectivity, shapefn &shp, const Variables& var );
 
 #endif
