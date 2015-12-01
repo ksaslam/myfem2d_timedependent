@@ -47,7 +47,7 @@ void update_temperature(const Param &param, const Variables &var,
 
  int n,m,i, iter, maxiter;
  //const int *conn; 
- maxiter=10;
+ maxiter=500;
  double sum;
  
  int number_of_nodes=3;
@@ -133,11 +133,11 @@ void update_temperature(const Param &param, const Variables &var,
  	 output << vector[n] << " " ;
  }	 
 
-  for (iter=0; iter< maxiter; iter++)
- {	
+  //for (iter=0; iter< maxiter; iter++)
+// {	
  	
   cg_solve(matrix_first, vector_guess,vector_second, WIDTH);  // caling jacobi method to solve for x giving an initial guess.
- }
+// }
  
  output << "\nThe vector converged after solver is \n";
 
@@ -157,7 +157,7 @@ void update_temperature(const Param &param, const Variables &var,
 
   
  output << "\n the number of elements are \n";
- //output << conn[1] << " " ;
+ output << *var.connectivity[0][0] << " " ;
  
 }
 
@@ -197,6 +197,8 @@ void initialize_global_force_vector(double * global_forc_vector, int num_nodes)
 
   
 }
+
+
 
 
 void free_global_matrix (double ** matrix_global, int num_nodes)

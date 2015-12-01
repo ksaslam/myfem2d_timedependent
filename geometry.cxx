@@ -136,9 +136,9 @@ void compute_shape_fn(const array_t &coord, const conn_t &connectivity,
 
    for (e=0; e< var.nelem; e++)
    { 
-      shp[e][0]= weight * volume[e]* (1.- beri_centre_x- beri_cente_y ) ;  // this is my integral of phi 1 function
-      shp[e][1]= weight* volume[e]* (beri_centre_x);       // this is my intergral of phi 2 function
-      shp[e][2]= weight* volume[e]* (beri_cente_y);      // this is my integral of phi 3 function
+      shp[e][0]= weight * 2.* volume[e]* (1.- beri_centre_x- beri_cente_y ) ;  // this is my integral of phi 1 function
+      shp[e][1]= weight* 2.* volume[e]* (beri_centre_x);       // this is my intergral of phi 2 function
+      shp[e][2]= weight* 2.* volume[e]* (beri_cente_y);      // this is my integral of phi 3 function
 
       shpdx[e][0] = -1.;
       shpdz[e][0] = -1.;
@@ -153,17 +153,40 @@ void compute_shape_fn(const array_t &coord, const conn_t &connectivity,
 
   {
     int e,i,j,node, force_node1, force_node2;
-    double k, b; 
-    double *forc_vector ;
+    double *b; 
+    double *forc_vector, **local_k ;
     const double *coordinate;
     const int number_of_nodes=3;
     const double weight= 0.5;
     const double conductivity= 1.e-5;
+    const int lower_boundary_flag= 1;
+    const int upper_boundary_flag=2; 
+    const double lower_boundary_value= 2.0;
+    const double upper_boundary_value=3.0;
+
+    local_k=(double **) malloc(number_of_nodes*sizeof(double *));  // this is matrix A where Ax = b
+    b = (double *)malloc(number_of_nodes*sizeof(double));
+    for(int i=0;i<number_of_nodes;i++)
+    {
+      local_k[i]=(double *) malloc(number_of_nodes*sizeof(double));  // initializing K matrix 
+    }  
 
 
 
     forc_vector = (double *)malloc(var.nnode*sizeof(double));
  // taking care of any source term present in the domain. If there is then consider it as a point source // 
+
+    
+    for (int n=0; n<var.nnode; ++n) 
+    {
+          std::cout << "This is just for boundary flag \n";
+
+       std::cout << (*var.bcflag)[n];
+       std::cout << ".........This is just for boundary flag \n";
+
+    }    
+           
+
 
     for(e=0;e<var.nelem;i++)
     { 
@@ -193,9 +216,9 @@ void compute_shape_fn(const array_t &coord, const conn_t &connectivity,
     //forc_vector[force_node2]= 10. ;    // this is the source term  
 
 
-    k=0.;   // initializing k 
+    //k=0.;   // initializing k 
     std::cout << " K is calculated\n";
-    std::cout <<  k;
+    //std::cout <<  k;
     std::cout << "\n";    
     std::cout << " no. of element is calculated\n";
     std::cout <<  var.nelem;
@@ -209,22 +232,56 @@ void compute_shape_fn(const array_t &coord, const conn_t &connectivity,
     std::cout << "Global K matrix calculation.\n";
    for(e=0;e<var.nelem;e++)
     { 
-
+        initialize_local_matrix(local_k, number_of_nodes);
+        initialize_local_force_vector(b, number_of_nodes);
         //std::cout << "test ee loop";
         //std::cout << var.nelem;
         for(i=0;i<number_of_nodes;i++)
         {   //std::cout << "test loop";
             //std::cout << i;  
-            b =weight* (shp[e][i] ) * forc_vector[connectivity[e][i]] ; 
             
+            b[i] =weight* (shp[e][i] ) * forc_vector[node] ; 
             for(j=0;j<number_of_nodes;j++)
             {
-               k = conductivity *weight * volume[e]* ( shpdx[e][i] * shpdx[e][j] + shpdz[e][i] * shpdz[e][j] );
+               local_k[i][j] = conductivity *weight * 2.* volume[e]* ( shpdx[e][i] * shpdx[e][j] + shpdz[e][i] * shpdz[e][j] );
 
-               matrix_global[connectivity[e][i]][connectivity[e][j]] += k; 
+               node= connectivity[e][j];
+               if ( (*var.bcflag)[node] == lower_boundary_flag )
+               {        
+                    if (j==0)
+                    {   
+                        local_k[0][0]= 1.;
+                        local_k[0][1]= 0.;
+                        local_k[0][2]= 0.;
+                    }    
+
+                    if (j==1)
+                    {   
+                        local_k[1][1]= 1.;
+                        local_k[1][0]= 0.;
+                        local_k[1][2]= 0.;
+                    } 
+
+                    if (j==2)
+                    {   
+                        local_k[2][2]= 1.;
+                        local_k[2][0]= 0.;
+                        local_k[2][1]= 0.;
+                    }       
+
+
+               }       
+               matrix_global[connectivity[e][i]][connectivity[e][j]] += local_k[i][j]; 
             }
 
+            
+            
+
+           
+                   
+
            // global_forc_vector[connectivity[e][i]]+= b;
+
         }
         
     }  
@@ -233,11 +290,44 @@ void compute_shape_fn(const array_t &coord, const conn_t &connectivity,
              
 
           
-
-
+  for(int i=0;i<number_of_nodes;i++)
+    {
+      local_k[i]=(double *) malloc(number_of_nodes*sizeof(double));  // initializing K matrix 
+    }  
+   free(local_k);
    free(forc_vector);
+   
+   
+   
 } //std::cout << "These ARE  THE coordinates value, test...\n";
 
    ///std::cout <<  b[1] ;
+
+void initialize_local_matrix (double ** matrix_local, int num_nodes)
+{
+  int i,j;
+  
+
+  for(i=0;i<num_nodes;i++) // initializing the local k matrix
+    {       
+       for(j=0;j<num_nodes;j++)
+       {
+         matrix_local[i][j]= 0.; 
+       }
+
+    }
+
+}
+
+void initialize_local_force_vector(double * local_forc_vector, int num_nodes)
+{
+  int j;      
+  for(j=0;j<num_nodes;j++)
+    {
+        local_forc_vector[j]= 0.; 
+    }
+
+  
+}
 
 
