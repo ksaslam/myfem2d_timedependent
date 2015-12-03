@@ -83,7 +83,7 @@ void init(const Param& param, Variables& var)
     {       
        for(int j=0;j<var.nnode;j++)
        {
-         std::cout << matrix_global[i][j] << " " ;
+       //  std::cout << matrix_global[i][j] << " " ;
         }
     }     
     // apply_bcs(param, var, *var.vel);
