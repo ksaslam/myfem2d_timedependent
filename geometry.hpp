@@ -16,5 +16,6 @@ void compute_global_matrix(const array_t &coord, double **matrix_global,double* 
 void initialize_local_matrix (double ** matrix_local, int num_nodes);
 void initialize_local_force_vector(double * local_forc_vector, int num_nodes);
 double boundary_value( int boundary_flag);
+void forcing_source( double* forc_vector, double * force_node_coordinate,int number_of_nodes);
 
 #endif

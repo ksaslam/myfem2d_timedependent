@@ -47,10 +47,12 @@ void init(const Param& param, Variables& var)
     //compute_shape_fn(*var.coord, *var.connectivity, *var.volume, *var.shpdx,*var.shpdy, var);
     compute_shape_fn(*var.coord, *var.connectivity, *var.volume, *var.shpdx,*var.shpdz, *var.shp ,var);
 
-    // ******************************************* test case ********************
+    // ******************************************* Initializaation test case ********************
     
-    double **matrix_global, *global_forc_vector;
+    double **matrix_global, *global_forc_vector, *vector_guess, *temperature;
     global_forc_vector = (double *)malloc(var.nnode*sizeof(double));
+    vector_guess = (double *)malloc(var.nnode*sizeof(double));
+    temperature= (double *)malloc(var.nnode*sizeof(double));
     matrix_global=(double **) malloc(var.nnode*sizeof(double *));  // this is matrix A where Ax = b
     for(int i=0;i<var.nnode;i++)
     {
@@ -59,8 +61,10 @@ void init(const Param& param, Variables& var)
     std::ofstream output("./globalmatriks.txt");
     initialize_global_matrix (matrix_global, var.nnode);
     initialize_global_force_vector(global_forc_vector, var.nnode);
+    initialize_global_force_vector(vector_guess, var.nnode);  // this is not the force, it is the guess temparature
+    initialize_global_force_vector(temperature, var.nnode);   // this is not the force, it is the temparature array
 
-    for(int i=0;i<var.nnode;i++) // initializing the global k matrix
+    for(int i=0;i<var.nnode;i++) // 
     {       
        for(int j=0;j<var.nnode;j++)
        {
@@ -87,6 +91,14 @@ void init(const Param& param, Variables& var)
         }
     }     
     // apply_bcs(param, var, *var.vel);
+
+    cg_solve(matrix_global, vector_guess,temperature, var.nnode);
+    
+    //for(int n=0;n<var.nnode;n++)
+    //   {
+    //      (*var.temperature)[n] = 0.5 ;
+    //    }   
+
 
     // temperature should be init'd before stress and strain
     initial_temperature(param, var, *var.temperature);

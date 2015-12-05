@@ -153,66 +153,81 @@ void compute_shape_fn(const array_t &coord, const conn_t &connectivity,
 void compute_global_matrix( const array_t &coord, double **matrix_global, double *global_forc_vector,shapefn &shpdx, shapefn &shpdz, const double_vec &volume, const conn_t &connectivity, shapefn &shp, const Variables& var )
 
 {
-    int e,i,j,node, force_node1, force_node2;
-    double *b; 
+    int e,i,j,node, force_node_number;
+    double *b, *force_node_coordinate; 
     double *forc_vector, **local_k ;
-    const double *coordinate;
     const int number_of_nodes=3;
     const double weight= 0.5;
     const int lower_boundary_flag= 1;
     const int upper_boundary_flag=2;
     const int no_boundary_flag=0; 
+    const int force_vector_dimens=3;
    
 
     local_k=(double **) malloc(number_of_nodes*sizeof(double *));  // this is matrix A where Ax = b
     b = (double *)malloc(number_of_nodes*sizeof(double));
+    force_node_coordinate = (double *)malloc(force_vector_dimens*sizeof(double));
     for(int i=0;i<number_of_nodes;i++)
     {
       local_k[i]=(double *) malloc(number_of_nodes*sizeof(double));  // initializing K matrix 
     }  
 
 
-
+    
     forc_vector = (double *)malloc(var.nnode*sizeof(double));
+    force_node_coordinate[0]=0.;
+    force_node_coordinate[1]=0.;
+    force_node_number=0;
+    
+    forcing_source( forc_vector, force_node_coordinate,var.nnode);
+
  // taking care of any source term present in the domain. If there is then consider it as a point source // 
 
     
     for (int n=0; n<var.nnode; ++n) 
     {
-          std::cout << "This is just for boundary flag \n";
+          std::cout << "This is just for temparature flag \n";
 
-       std::cout << (*var.bcflag)[n];
-       std::cout << ".........This is just for boundary flag \n";
+       //std::cout << (*var.bcflag)[n];
+       std::cout << (*var.temperature)[n];
+       std::cout << ".........This is just the temparature flag \n";
 
     }    
            
 
 
-    // for(e=0;e<var.nelem;i++)
-    // { 
-    //   for(i=0;i<number_of_nodes;i++)
-    //   {
-    //        node = connectivity[e][i];
-    //        coordinate= coord[node];
-    //        if (coordinate[0]>= 0. && coordinate[1]<= -100)
-    //        {
-    //          force_node1 =node;
-    //          goto stop;       // add a break statement here to end the loop
+    for(e=0;e<var.nelem;e++)
+     { 
+       for(i=0;i<number_of_nodes;i++)
+       {
+            node = connectivity[e][i];
+            std::cout << "node \n";
+            std::cout << force_node_coordinate[0];
+            std::cout << " \n";
+            const double *coordinate = coord[node];
+            std::cout << "I am outside the force loop \n";
+            std::cout <<  force_node_coordinate[0]; 
+            if (coordinate[0]== force_node_coordinate[0] && coordinate[1]== force_node_coordinate[1])
+            {
+              std::cout << "I am inside the force loop \n";
+              force_node_number= node;
+              //std::cout << node;
+              goto stop;       // add a break statement here to end the loop
 
-    //       }  
-    //       // if (coordinate[0]== 100. && coordinate[1]== 0)
-    //        //{
-    //         // force_node2 =node;       // add a break statement here to end the loop
+             }  
+    //        // if (coordinate[0]== 100. && coordinate[1]== 0)
+    //        //  {
+    // //         // force_node2 =node;       // add a break statement here to end the loop
 
-    //        //}  
-    //   }
-    // }  
-    //   stop:
-    // std::cout << "The iteration stopped at \n";
-    // std::cout << force_node1;   
+    // //        //}  
+        }
+      }  
+    stop:
+    // std::cout << "This is heat at \n";
+    // std::cout << force_node_coordinate[2];   
     // std::cout << "\n";
     
-    // forc_vector[force_node1]= 10. ;    // this is the source term 
+    forc_vector[force_node_number]= force_node_coordinate[2];      // this is the source term 
     //forc_vector[force_node2]= 10. ;    // this is the source term  
 
 
@@ -234,6 +249,7 @@ void compute_global_matrix( const array_t &coord, double **matrix_global, double
    { 
         initialize_local_matrix(local_k, number_of_nodes);
         initialize_local_force_vector(b, number_of_nodes);
+
         //std::cout << "test ee loop";
         //std::cout << var.nelem;
         // std::cout << "this is the regional attribute\n";
@@ -243,24 +259,26 @@ void compute_global_matrix( const array_t &coord, double **matrix_global, double
         for(i=0;i<number_of_nodes;i++)
         {
           node = connectivity[e][i];
+          std::cout << "this is the boundary value after initializing \n";
+          std::cout << b[i];
           b[i] =weight* (shp[e][i] ) * forc_vector[node] ;
+          std::cout << "this is the boundary value \n";
+          std::cout << b[i];
         }    
 
         for(i=0;i<number_of_nodes;i++)
         {    
-            // node= connectivity[e][i];
-            //    if ( (*var.bcflag)[node] != lower_boundary_flag)
-            //     {   // add a upper boundary flag also
-            //       b[i] =weight* (shp[e][i] ) * forc_vector[node] ;
-            //     }   
             for(j=0;j<number_of_nodes;j++)
             {
                local_k[i][j] = conductivity *weight * 2.* volume[e]* ( shpdx[e][i] * shpdx[e][j] + shpdz[e][i] * shpdz[e][j] );
+               //std::cout << "this is the local matrix attribute\n";
+               //std::cout << local_k[i][j];
+            
             }  
              
         }
         
-        if ( (*var.bcflag)[connectivity[e][0]] != no_boundary_flag && (*var.bcflag)[connectivity[e][2]]!=no_boundary_flag && (*var.bcflag)[connectivity[e][2]]!=no_boundary_flag )
+        if ( (*var.bcflag)[connectivity[e][0]] != no_boundary_flag && (*var.bcflag)[connectivity[e][1]]!=no_boundary_flag && (*var.bcflag)[connectivity[e][2]]!=no_boundary_flag )
         {  
             std::cout << " Hey I am in the first loop\n" ;
             double k1_temp= local_k[1][0];
@@ -277,7 +295,7 @@ void compute_global_matrix( const array_t &coord, double **matrix_global, double
              } 
             local_k[0][0]= 1.;
             local_k[1][1]= 1.;
-            local_k[2][2]=0.;
+            local_k[2][2]=1.;
             double boundary_value0 = boundary_value( (*var.bcflag)[connectivity[e][0]] ) ;
             double boundary_value1 = boundary_value( (*var.bcflag)[connectivity[e][1]] ) ;
             double boundary_value2 = boundary_value( (*var.bcflag)[connectivity[e][2]] ) ;
@@ -413,11 +431,14 @@ void compute_global_matrix( const array_t &coord, double **matrix_global, double
 
       for(i=0;i<number_of_nodes;i++)
        {
-
+         // std::cout << "this is the boundary value \n";
+         // std::cout << b[i];
          for(j=0;j<number_of_nodes;j++)
           {
+            // std::cout << "this is the local matrix attribute\n";
+            // std::cout << local_k[i][j];
 
-          
+             
         
            
 
@@ -529,6 +550,25 @@ double boundary_value( int boundary_flag)
  }
 
 return boundary_value;
+}
+
+void forcing_source( double* forc_vector, double *force_node_coordinate,int number_of_nodes)
+{
+ int j;  
+ double pointsource_x= 100. ;
+ double pointsource_y= 0. ;
+ double heat_value= 5.;   // units are temperature/ length^2 
+ force_node_coordinate[0]= pointsource_x;
+ force_node_coordinate[1]= pointsource_y;
+ force_node_coordinate[2]= heat_value;
+
+   
+  for(j=0;j<number_of_nodes;j++)
+    {
+        forc_vector[j]= 0.; 
+    }
+
+  
 }
 
 
