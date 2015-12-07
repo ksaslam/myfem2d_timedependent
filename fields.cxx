@@ -198,7 +198,16 @@ void initialize_global_force_vector(double * global_forc_vector, int num_nodes)
   
 }
 
+void initialize_guess_temperature_vector(double * guess_vector, int num_nodes)
+{
+  int j;      
+  for(j=0;j<num_nodes;j++)
+    {
+        guess_vector[j]= 0.5; 
+    }
 
+  
+}
 
 
 void free_global_matrix (double ** matrix_global, int num_nodes)

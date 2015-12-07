@@ -433,43 +433,12 @@ void compute_global_matrix( const array_t &coord, double **matrix_global, double
        {
          // std::cout << "this is the boundary value \n";
          // std::cout << b[i];
+         global_forc_vector[connectivity[e][i]] += b[i];
          for(j=0;j<number_of_nodes;j++)
           {
             // std::cout << "this is the local matrix attribute\n";
             // std::cout << local_k[i][j];
-
-             
-        
-           
-
-    //}      
-
-    //            node= connectivity[e][j];
-    //            if ( (*var.bcflag)[node] == lower_boundary_flag )
-    //            {        
-    //                 if (j==0)
-    //                 {   
-    //                     local_k[0][0]= 1.;
-    //                     local_k[0][1]= 0.;
-    //                     local_k[0][2]= 0.;
-    //                 }    
-
-    //                 if (j==1)
-    //                 {   
-    //                     local_k[1][1]= 1.;
-    //                     local_k[1][0]= 0.;
-    //                     local_k[1][2]= 0.;
-    //                 } 
-
-    //                 if (j==2)
-    //                 {   
-    //                     local_k[2][2]= 1.;
-    //                     local_k[2][0]= 0.;
-    //                     local_k[2][1]= 0.;
-    //                 }       
-
-
-   //         }       
+      
                   matrix_global[connectivity[e][i]][connectivity[e][j]] += local_k[i][j]; 
          }
 
