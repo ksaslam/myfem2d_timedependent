@@ -307,7 +307,7 @@ void compute_global_matrix( const array_t &coord, double **matrix_global, double
             double boundary_value0 = boundary_value( (*var.bcflag)[connectivity[e][0]] ) ;
             double boundary_value1 = boundary_value( (*var.bcflag)[connectivity[e][1]] ) ;
             b[0]= boundary_value0;
-            b[2]=  b[1]- k1_temp*boundary_value0 -k2_temp *boundary_value1 ;
+            b[2]=  b[2]- k1_temp*boundary_value0 -k2_temp *boundary_value1 ;
             b[1]= boundary_value1;
             std::cout << " Hey I am at the end of second loop\n" ;
 
@@ -515,7 +515,7 @@ void forcing_source( double* forc_vector, double *force_node_coordinate,int numb
  int j;  
  double pointsource_x= 100. ;
  double pointsource_y= -50. ;  // y is increasing in the -ve axis so add a negative sign
- double heat_value= 5.;   // units are temperature/ length^2 
+ double heat_value= 5.;   // units are watts/ length^2 
  force_node_coordinate[0]= pointsource_x;
  force_node_coordinate[1]= pointsource_y;
  force_node_coordinate[2]= heat_value;
