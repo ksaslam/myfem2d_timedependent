@@ -40,14 +40,11 @@ void init(const Param& param, Variables& var)
     allocate_variables(param, var);
 
     compute_volume(*var.coord, *var.connectivity, *var.volume);
-    //double iv = 1 / (2 * var.volume[0]);
-    //std::cout << iv << "\n";
-     
-    // initialize shape functions here
-    //compute_shape_fn(*var.coord, *var.connectivity, *var.volume, *var.shpdx,*var.shpdy, var);
+    
+    //this function calcluates the shape functions and its derivatives
     compute_shape_fn(*var.coord, *var.connectivity, *var.volume, *var.shpdx,*var.shpdz, *var.shp ,var);
 
-    // ******************************************* Initializaation test case ********************
+    // ******************************************* Initializaation some paramters like global stiffness matrix etc ********************
     
     double **matrix_global, *global_forc_vector, *temperature;
     global_forc_vector = (double *)malloc(var.nnode*sizeof(double));
@@ -62,8 +59,11 @@ void init(const Param& param, Variables& var)
     initialize_global_matrix (matrix_global, var.nnode);
     initialize_global_force_vector(global_forc_vector, var.nnode);
     //initialize_global_force_vector(vector_guess, var.nnode);  // this is not the force, it is the guess temparature
-    initialize_global_force_vector(temperature, var.nnode);   // this is the temparature, it is the temparature array
-
+    initialize_global_force_vector(temperature, var.nnode); // this is the temparature, it is the temparature array
+    for(int i=0;i<var.nnode;i++) // 
+    {        
+       temperature[i]= 1.;
+    }    
 
     for(int i=0;i<var.nnode;i++) // 
     {       
@@ -75,19 +75,21 @@ void init(const Param& param, Variables& var)
 
     
       
-// **************************************************************************  
+// ************************************************************************** 
+
+// computing t he global stiffness matrix and global force vector. This function returns both values. 
     
     compute_global_matrix( *var.coord, matrix_global, global_forc_vector, *var.shpdx, *var.shpdz, *var.volume, *var.connectivity,*var.shp, var );
-
+    std::cout << " I am back again\n";
     output << " The global matrix is calculated"<< " " ;
     for(int i=0;i<var.nnode;i++) // initializing the global k matrix
     {  
        
-       //std::cout << global_forc_vector[i];     
+            
        for(int j=0;j<var.nnode;j++)
        {
           output << matrix_global[i][j] << " " ;
-        }
+       }
     }     
 
     output << " The force vector is calculated"<< " " ;
@@ -95,18 +97,19 @@ void init(const Param& param, Variables& var)
     for(int j=0;j<var.nnode;j++)
        {
           output << global_forc_vector[j] << " " ;
-        }   
+       }   
     // apply_bcs(param, var, *var.vel);
 
+    // calling the conjugate gradient method to solve for the temparature of the domain 
     cg_solve(matrix_global,temperature, global_forc_vector, var.nnode);
     
     for(int n=0;n<var.nnode;n++)
     {
           (*var.temperature)[n] = temperature[n] ;
-          std::cout << "the temparature value is\n";
-          std::cout << temperature[n];
-          std::cout << "the final temparature value is\n";
-          std::cout << (*var.temperature)[n];
+           std::cout << "the temparature value is\n";
+           std::cout << temperature[n];
+           std::cout << "the final temparature value is\n";
+           std::cout << (*var.temperature)[n];
     }      
 
 

@@ -115,9 +115,11 @@ double cg_solve(double **matrix_first, double *vector_guess,double* vector_secon
 
  std::ofstream output("./inputmatriks1.txt");
  output << "\n The vector guessed is \n";
+
  root_sum_squares= 1.0;
  while (root_sum_squares>= 0.00001)
- { 
+ {
+  std::cout << " I am inside the solver now hang on\n"; 
   multiply_matrix (matrix_first, vector_guess,vector_r, nelem_in_array);
  
   //#pragma omp parallel for

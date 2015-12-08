@@ -136,7 +136,7 @@ void update_temperature(const Param &param, const Variables &var,
   //for (iter=0; iter< maxiter; iter++)
 // {	
  	
-  cg_solve(matrix_first, vector_guess,vector_second, WIDTH);  // caling jacobi method to solve for x giving an initial guess.
+ // cg_solve(matrix_first, vector_guess,vector_second, WIDTH);  // caling jacobi method to solve for x giving an initial guess.
 // }
  
  output << "\nThe vector converged after solver is \n";
