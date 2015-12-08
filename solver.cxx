@@ -99,7 +99,7 @@ return *vector_guess;
 // // This is the function which solves the Conjugate Gradient  method 
 
 
-double cg_solve(double **matrix_first, double *vector_guess,double* vector_second, int nelem_in_array) 
+double get_steady_temperature_cg_solve(double **matrix_first, double *vector_guess,double* vector_second, int nelem_in_array) 
 //void multiply_matrix(double **matrix_first, double *matrix_second, int nelem_in_array) 
 {
  double *vector_r, *vector_p, *vector_cof,alpha_p, *vector_bk, *residual_vector,*temp_b, b_k_coeffic;

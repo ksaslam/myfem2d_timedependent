@@ -20,6 +20,7 @@
 namespace std { using ::snprintf; }
 #endif // WIN32
 
+double **matrix_global, *global_forc_vector, *temperature;
 void init_var(const Param& param, Variables& var)
 {
     var.time = 0;
@@ -44,9 +45,11 @@ void init(const Param& param, Variables& var)
     //this function calcluates the shape functions and its derivatives
     compute_shape_fn(*var.coord, *var.connectivity, *var.volume, *var.shpdx,*var.shpdz, *var.shp ,var);
 
+    
+    
     // ******************************************* Initializaation some paramters like global stiffness matrix etc ********************
     
-    double **matrix_global, *global_forc_vector, *temperature;
+    
     global_forc_vector = (double *)malloc(var.nnode*sizeof(double));
     //vector_guess = (double *)malloc(var.nnode*sizeof(double));
     temperature= (double *)malloc(var.nnode*sizeof(double));
@@ -56,52 +59,27 @@ void init(const Param& param, Variables& var)
       matrix_global[i]=(double *) malloc(var.nnode*sizeof(double));  // initializing K matrix 
     }  
     std::ofstream output("./globalmatriks.txt");
-    initialize_global_matrix (matrix_global, var.nnode);
-    initialize_global_force_vector(global_forc_vector, var.nnode);
-    //initialize_global_force_vector(vector_guess, var.nnode);  // this is not the force, it is the guess temparature
-    initialize_global_force_vector(temperature, var.nnode); // this is the temparature, it is the temparature array
-    for(int i=0;i<var.nnode;i++) // 
-    {        
-       temperature[i]= 1.;
-    }    
+    //*********************************************************************************************************
 
-    for(int i=0;i<var.nnode;i++) // 
-    {       
-       for(int j=0;j<var.nnode;j++)
-       {
-         //output << matrix_global[i][j] << " " ;
-        }
-    }
+
+    
+
+    initialize_global_matrix (matrix_global, var.nnode);
+    
+    initialize_global_force_vector(global_forc_vector, var.nnode);
+    
+    initialize_guess_temperature_vector(temperature, var.nnode); // this is the temparature, it is the temparature array
+    
 
     
       
 // ************************************************************************** 
 
-// computing t he global stiffness matrix and global force vector. This function returns both values. 
+// computing the global stiffness matrix and global force vector. This function returns both values. 
     
     compute_global_matrix( *var.coord, matrix_global, global_forc_vector, *var.shpdx, *var.shpdz, *var.volume, *var.connectivity,*var.shp, var );
-    std::cout << " I am back again\n";
-    output << " The global matrix is calculated"<< " " ;
-    for(int i=0;i<var.nnode;i++) // initializing the global k matrix
-    {  
-       
-            
-       for(int j=0;j<var.nnode;j++)
-       {
-          output << matrix_global[i][j] << " " ;
-       }
-    }     
-
-    output << " The force vector is calculated"<< " " ;
-    //std::cout <<  var.nnode;  
-    for(int j=0;j<var.nnode;j++)
-       {
-          output << global_forc_vector[j] << " " ;
-       }   
-    // apply_bcs(param, var, *var.vel);
-
-    // calling the conjugate gradient method to solve for the temparature of the domain 
-    cg_solve(matrix_global,temperature, global_forc_vector, var.nnode);
+   
+    get_steady_temperature_cg_solve(matrix_global,temperature, global_forc_vector, var.nnode);
     
     for(int n=0;n<var.nnode;n++)
     {
