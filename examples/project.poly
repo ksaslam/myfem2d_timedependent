@@ -51,9 +51,9 @@
 # nregions
   5
 # k  xk    zk   mattype  size
-  0 45e3 -25e3 0.5        5e8  # max. element size (in m^2)
-  1 45e3 -75e3 0.5        5e8 
-  2 100e3 -50e3 0.2       5e9
-  3 155e3 -75e3 0.5       5e8
-  4 155e3 -25e3 0.5       5e8
+  0 45e3 -25e3 0.5        5e9  # max. element size (in m^2)
+  1 45e3 -75e3 0.5        5e9 
+  2 100e3 -50e3 0.2       5e10
+  3 155e3 -75e3 0.5       5e9
+  4 155e3 -25e3 0.5       5e9
 
