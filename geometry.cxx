@@ -10,6 +10,7 @@
 #include "matprops.hpp"
 #include "utils.hpp"
 #include "geometry.hpp"
+#include "solver.hpp"
 
 
 /* Given two points, returns the distance^2 */
@@ -136,9 +137,9 @@ void compute_shape_fn(const array_t &coord, const conn_t &connectivity,
 
    for (e=0; e< var.nelem; e++)
    { 
-      shp[e][0]= weight * 2.* volume[e]* (1.- beri_centre_x- beri_cente_y ) ;  // this is my integral of phi 1 function
-      shp[e][1]= weight* 2.* volume[e]* (beri_centre_x);       // this is my intergral of phi 2 function
-      shp[e][2]= weight* 2.* volume[e]* (beri_cente_y);      // this is my integral of phi 3 function
+      shp[e][0]= (1.- beri_centre_x- beri_cente_y ) ;  // this is my integral of phi 1 function
+      shp[e][1]= beri_centre_x;       // this is my intergral of phi 2 function
+      shp[e][2]= beri_cente_y;      // this is my integral of phi 3 function
 
       shpdx[e][0] = -1.;   // these are the derivates of shape function. No integration yet
       shpdz[e][0] = -1.;
@@ -150,27 +151,30 @@ void compute_shape_fn(const array_t &coord, const conn_t &connectivity,
 
 } 
 
-void compute_global_matrix( const array_t &coord, double **matrix_global, double *global_forc_vector,shapefn &shpdx, shapefn &shpdz, const double_vec &volume, const conn_t &connectivity, shapefn &shp, const Variables& var )
+void compute_global_matrix( const array_t &coord, double **matrix_global, double** matrix_mass, double *global_forc_vector,shapefn &shpdx, shapefn &shpdz, const double_vec &volume, const conn_t &connectivity, shapefn &shp, const Variables& var )
 
 {
     // declaring different parameters 
     int e,i,j,node, force_node_number;
     double *b, *force_node_coordinate; 
-    double *forc_vector, **local_k ;
+    double *forc_vector, **local_k, **local_mass ;
     const int number_of_nodes=3;
     const double weight= 0.5;  
     const int lower_boundary_flag= 1;
     const int upper_boundary_flag=2;
     const int no_boundary_flag=0; 
     const int force_vector_dimens=3;
+    const double time_step=0.5;
    
 
     local_k=(double **) malloc(number_of_nodes*sizeof(double *));  // this is matrix A where Ax = b
+    local_mass= (double **) malloc(number_of_nodes*sizeof(double *));
     b = (double *)malloc(number_of_nodes*sizeof(double));
     force_node_coordinate = (double *)malloc(force_vector_dimens*sizeof(double));
     for(int i=0;i<number_of_nodes;i++)
     {
       local_k[i]=(double *) malloc(number_of_nodes*sizeof(double));  // initializing K matrix 
+      local_mass[i]=(double *) malloc(number_of_nodes*sizeof(double *));
     }  
 
 
@@ -253,6 +257,7 @@ void compute_global_matrix( const array_t &coord, double **matrix_global, double
             for(j=0;j<number_of_nodes;j++)
             {
                local_k[i][j] = conductivity *weight * 2.* volume[e]* ( shpdx[e][i] * shpdx[e][j] + shpdz[e][i] * shpdz[e][j] ); // elementary stiffness matrix 
+               local_mass[i][j]= weight*2*volume[e]* shp[e][i]* shp[e][j];
                //std::cout << "this is the local matrix for\n";
                //std::cout << local_k[i][j];
             
@@ -431,34 +436,57 @@ void compute_global_matrix( const array_t &coord, double **matrix_global, double
             // std::cout << "this is the local matrix attribute\n";
             // std::cout << local_k[i][j];
       
-                  matrix_global[connectivity[e][i]][connectivity[e][j]] += local_k[i][j]; 
+                  matrix_global[connectivity[e][i]][connectivity[e][j]] += local_k[i][j];
+                  matrix_mass[connectivity[e][i]][connectivity[e][j]] += local_mass[i][j]; 
          }
 
             
       }          
 
-  }         
-                   
-
-   
-        
-        
-      
+  }        
    
 
-             
-
-          
+               
  for(i=0;i<number_of_nodes;i++)
   {
      free(local_k[i]);
+     free(local_mass[i]);
   }  
   free(local_k);
+  free(local_mass);
 
   free(b);
 
 }   
    
+
+void temperature_at_new_time( double *temperature_new,double **matrix_global, double *global_forc_vector,double **global_mass,double time_step,double *initial_temperature,int number_of_nodes)         
+  {
+    int i,j;
+    double *new_force_vector;
+    new_force_vector= (double *)malloc(number_of_nodes*sizeof(double));
+
+    multiply_matrix(matrix_global,initial_temperature, new_force_vector, number_of_nodes);
+    for(i=0;i<number_of_nodes;i++)
+       {
+         global_forc_vector[i]= time_step * global_forc_vector[i] + new_force_vector[i]; 
+         for(j=0;j<number_of_nodes;j++)
+         {
+           std::cout << "this is the boundary value \n";
+           std::cout << matrix_global[i][j];
+            matrix_global[i][j]= time_step * matrix_global[i][j]+global_mass[i][j];
+            std::cout << matrix_global[i][j];
+            std::cout << "\n";
+         }
+       }
+  
+    get_steady_temperature_cg_solve(matrix_global, temperature_new, global_forc_vector, number_of_nodes);
+    for(i=0;i<number_of_nodes;i++)
+       {
+         initial_temperature[i]= temperature_new[i]; 
+       }
+    
+  }       
    
 
 
@@ -528,5 +556,20 @@ void forcing_source( double* forc_vector, double *force_node_coordinate,int numb
 
   
 }
+
+void initial_temperature_values( double* temperature,int number_of_nodes)
+{
+  int j;
+  const double temerature_at_each_node= 273.0;
+  for(j=0;j<number_of_nodes;j++)
+    {
+        temperature[j]= temerature_at_each_node; 
+    }
+
+  
+}
+
+
+
 
 

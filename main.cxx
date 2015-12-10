@@ -20,7 +20,7 @@
 namespace std { using ::snprintf; }
 #endif // WIN32
 
-double **matrix_global, *global_forc_vector, *temperature;
+double **matrix_global, **matrix_mass,*global_forc_vector, *temperature, *temperature_new;
 void init_var(const Param& param, Variables& var)
 {
     var.time = 0;
@@ -53,10 +53,13 @@ void init(const Param& param, Variables& var)
     global_forc_vector = (double *)malloc(var.nnode*sizeof(double));
     //vector_guess = (double *)malloc(var.nnode*sizeof(double));
     temperature= (double *)malloc(var.nnode*sizeof(double));
+    temperature_new= (double *)malloc(var.nnode*sizeof(double));
     matrix_global=(double **) malloc(var.nnode*sizeof(double *));  // this is matrix A where Ax = b
+    matrix_mass=(double **) malloc(var.nnode*sizeof(double *));
     for(int i=0;i<var.nnode;i++)
     {
       matrix_global[i]=(double *) malloc(var.nnode*sizeof(double));  // initializing K matrix 
+      matrix_mass[i]=(double *) malloc(var.nnode*sizeof(double));
     }  
     std::ofstream output("./globalmatriks.txt");
     //*********************************************************************************************************
@@ -68,18 +71,48 @@ void init(const Param& param, Variables& var)
     
     initialize_global_force_vector(global_forc_vector, var.nnode);
     
-    initialize_guess_temperature_vector(temperature, var.nnode); // this is the temparature, it is the temparature array
+    initial_temperature_values(temperature, var.nnode); // this is the temparature, it is the temparature array
     
-
+    for(int n=0;n<var.nnode;n++)   // this loop will take care of the boundary conditions 
+    {
+        int flag=(*var.bcflag)[n];
+        if (flag !=0) 
+        {
+            temperature[n]=boundary_value(flag);
+        }
+    }    
+   
     
       
 // ************************************************************************** 
 
 // computing the global stiffness matrix and global force vector. This function returns both values. 
     
-    compute_global_matrix( *var.coord, matrix_global, global_forc_vector, *var.shpdx, *var.shpdz, *var.volume, *var.connectivity,*var.shp, var );
+    compute_global_matrix( *var.coord, matrix_global, matrix_mass, global_forc_vector, *var.shpdx, *var.shpdz, *var.volume, *var.connectivity,*var.shp, var );
+
+    double time_step= 1;
+
+    
+
+    // for(int i=0;i<2;i++)
+    // {
+
+      temperature_at_new_time( temperature_new, matrix_global, global_forc_vector, matrix_mass,time_step,temperature, var.nnode);         
+      for(int i=0;i<var.nnode;i++)
+       {
+          temperature[i]= temperature_new[i];  // saving the new temparature values as old for new time step
+          int flag=(*var.bcflag)[i];
+          if (flag !=0) 
+          {
+            temperature[i]=boundary_value(flag);
+          }
+       }
+    // }
+
+      
    
-    get_steady_temperature_cg_solve(matrix_global,temperature, global_forc_vector, var.nnode);
+    
+    //get_steady_temperature_cg_solve(matrix_global,temperature, global_forc_vector, var.nnode);
     
     for(int n=0;n<var.nnode;n++)
     {
