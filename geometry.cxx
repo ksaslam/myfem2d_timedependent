@@ -464,26 +464,26 @@ void temperature_at_new_time( double *temperature_new,double **matrix_global, do
   {
     int i,j;
     double *new_force_vector;
-    new_force_vector= (double *)malloc(number_of_nodes*sizeof(double));
+    new_force_vector= (double *)malloc(number_of_nodes*sizeof(double)); // finding new factor = M * u where u is initial condition
 
-    multiply_matrix(matrix_global,initial_temperature, new_force_vector, number_of_nodes);
+    multiply_matrix(matrix_global,initial_temperature, new_force_vector, number_of_nodes);   
     for(i=0;i<number_of_nodes;i++)
        {
-         global_forc_vector[i]= time_step * global_forc_vector[i] + new_force_vector[i]; 
+         global_forc_vector[i]= time_step * global_forc_vector[i] + new_force_vector[i];  // ne global vector= dt*F + M *u
          for(j=0;j<number_of_nodes;j++)
          {
            std::cout << "this is the boundary value \n";
            std::cout << matrix_global[i][j];
-            matrix_global[i][j]= time_step * matrix_global[i][j]+global_mass[i][j];
+            matrix_global[i][j]= time_step * matrix_global[i][j]+global_mass[i][j];  // new matrix global = K + M
             std::cout << matrix_global[i][j];
             std::cout << "\n";
          }
        }
   
-    get_steady_temperature_cg_solve(matrix_global, temperature_new, global_forc_vector, number_of_nodes);
+    get_steady_temperature_cg_solve(matrix_global, temperature_new, global_forc_vector, number_of_nodes);  // solving for u next time
     for(i=0;i<number_of_nodes;i++)
        {
-         initial_temperature[i]= temperature_new[i]; 
+         initial_temperature[i]= temperature_new[i];  // copying new values into old values
        }
     
   }       
